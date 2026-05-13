@@ -1,4 +1,5 @@
 using Financeiro.Domain.Entities;
+using FluentAssertions;
 using Xunit;
 
 namespace Financeiro.Tests.Domain;
@@ -17,9 +18,9 @@ public class TransacaoTests
         var transacao = new Transacao(valor, tipo, idempotencyKey);
 
         // Assert
-        Assert.Equal(valor, transacao.Valor);
-        Assert.Equal(idempotencyKey, transacao.IdempotencyKey);
-        Assert.NotEqual(Guid.Empty, transacao.Id);
+        transacao.Valor.Should().Be(valor);
+        transacao.IdempotencyKey.Should().Be(idempotencyKey);
+        transacao.Id.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -30,8 +31,11 @@ public class TransacaoTests
         var tipo = TipoTransacao.Debito;
         var idempotencyKey = "key-002";
 
-        // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() => new Transacao(valor, tipo, idempotencyKey));
-        Assert.Equal("O valor da transação deve ser positivo.", ex.Message);
+        // Act
+        Action act = () => new Transacao(valor, tipo, idempotencyKey);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+           .WithMessage("O valor da transação deve ser positivo.");
     }
 }
