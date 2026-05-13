@@ -1,5 +1,5 @@
 using System.Net;
-using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Financeiro.Api.Middleware;
 
@@ -7,12 +7,6 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-    public class ErrorResponse
-    {
-        public string? Mensagem { get; set; }
-        public string? Detalhes { get; set; }
-    }
 
     public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
@@ -28,27 +22,29 @@ public class ExceptionHandlingMiddleware
         }
         catch (ArgumentException ex)
         {
-            // Erros de Validação de Negócio (Domínio) -> 400
-            await HandleExceptionAsync(context, ex, HttpStatusCode.BadRequest, "Erro de Validação");
+            await HandleExceptionAsync(context, ex, HttpStatusCode.BadRequest, "Violação de Regra de Negócio");
         }
         catch (Exception ex)
         {
-            // Erros Inesperados -> 500
-            _logger.LogError(ex, "Ocorreu um erro inesperado.");
+            _logger.LogError(ex, "Ocorreu um erro não tratado.");
             await HandleExceptionAsync(context, ex, HttpStatusCode.InternalServerError, "Erro Interno no Servidor");
         }
     }
 
     private static Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode code, string title)
     {
-        context.Response.ContentType = "application/json";
+        context.Response.ContentType = "application/problem+json";
         context.Response.StatusCode = (int)code;
 
-        var result = JsonSerializer.Serialize(new ErrorResponse
+        var problemDetails = new ProblemDetails
         {
-            Mensagem = exception.Message,
-            Detalhes = title
-        });
+            Status = (int)code,
+            Title = title,
+            Detail = exception.Message,
+            Instance = context.Request.Path
+        };
+
+        var result = System.Text.Json.JsonSerializer.Serialize(problemDetails);
 
         return context.Response.WriteAsync(result);
     }

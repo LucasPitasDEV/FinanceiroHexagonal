@@ -1,10 +1,11 @@
 using Financeiro.Domain.Repositories;
 using Financeiro.Infrastructure.Repositories;
 using MassTransit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Financeiro.Infrastructure;

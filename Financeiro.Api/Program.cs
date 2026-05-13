@@ -4,7 +4,6 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuração do Serilog (Logging Estruturado)
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
@@ -12,7 +11,6 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// 2. Configuração seguindo a Arquitetura Hexagonal
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -20,9 +18,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHealthChecks()
+    .AddMongoDb(builder.Configuration.GetConnectionString("MongoDb")!, name: "mongodb")
+    .AddRabbitMQ(new Uri(builder.Configuration.GetConnectionString("RabbitMq")!), name: "rabbitmq");
+
 var app = builder.Build();
 
 app.UseMiddleware<Financeiro.Api.Middleware.ExceptionHandlingMiddleware>();
+
+app.MapHealthChecks("/health");
 
 if (app.Environment.IsDevelopment())
 {
