@@ -13,7 +13,6 @@ namespace Financeiro.Infrastructure.Repositories
             var database = mongoClient.GetDatabase("FinanceiroDB");
             _collection = database.GetCollection<Transacao>("Transacoes");
 
-            // Garantir índice único para IdempotencyKey (Reforço de integridade no banco)
             var indexKeysDefinition = Builders<Transacao>.IndexKeys.Ascending(t => t.IdempotencyKey);
             var indexOptions = new CreateIndexOptions { Unique = true };
             _collection.Indexes.CreateOne(new CreateIndexModel<Transacao>(indexKeysDefinition, indexOptions));
