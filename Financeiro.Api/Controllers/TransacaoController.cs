@@ -21,6 +21,13 @@ public class TransacaoController : ControllerBase
         await _appService.RegistrarTransacao(request.Valor, request.Tipo, request.IdempotencyKey);
         return Ok(new { mensagem = "Transação processada com sucesso." });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var transacoes = await _appService.ListarTransacoes();
+        return Ok(transacoes);
+    }
 }
 
 public record TransacaoRequest(decimal Valor, TipoTransacao Tipo, string IdempotencyKey);

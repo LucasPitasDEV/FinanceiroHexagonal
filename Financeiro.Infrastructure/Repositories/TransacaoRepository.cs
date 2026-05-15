@@ -27,5 +27,10 @@ namespace Financeiro.Infrastructure.Repositories
         {
             return await _collection.Find(t => t.IdempotencyKey == chave).FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<Transacao>> ListarTodasAsync()
+        {
+            return await _collection.Find(_ => true).ToListAsync();
+        }
     }
 }

@@ -29,5 +29,10 @@ namespace Financeiro.Application.Services
 
             await _publishEndpoint.Publish(transacao);
         }
+
+        public async Task<IEnumerable<Transacao>> ListarTransacoes()
+        {
+            return await _repository.ListarTodasAsync();
+        }
     }
 }
