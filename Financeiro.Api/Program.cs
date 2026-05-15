@@ -1,5 +1,7 @@
 using Financeiro.Application;
 using Financeiro.Infrastructure;
+using MongoDB.Driver;
+using RabbitMQ.Client;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,11 +22,23 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks()
     .AddMongoDb(builder.Configuration.GetConnectionString("MongoDb")!, name: "mongodb")
-    .AddRabbitMQ(new Uri(builder.Configuration.GetConnectionString("RabbitMq")!), name: "rabbitmq");
+    .AddRabbitMQ(builder.Configuration.GetConnectionString("RabbitMq")!, name: "rabbitmq");
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
 app.UseMiddleware<Financeiro.Api.Middleware.ExceptionHandlingMiddleware>();
+
+app.UseCors("AllowAngular");
 
 app.MapHealthChecks("/health");
 
